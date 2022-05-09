@@ -226,7 +226,7 @@ rule combine_sequences_for_subsampling:
         "benchmarks/combine_sequences_for_subsampling.txt"
     conda: config["conda_environment"]
     params:
-        error_on_duplicate_strains="--error-on-duplicate-strains" if not config.get("combine_sequences_for_subsampling", {}).get("warn_about_duplicates") else "",
+        error_on_duplicate_strains="" if config.get("combine_sequences_for_subsampling", {}).get("warn_about_duplicates") else "--error-on-duplicate-strains",
         strain_prefixes=config["strip_strain_prefixes"],
     shell:
         """
