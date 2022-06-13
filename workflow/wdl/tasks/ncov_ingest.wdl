@@ -5,17 +5,17 @@ version 1.0
 task ncov_ingest {
   input {
     # based off of https://github.com/nextstrain/ncov-ingest#required-environment-variables
-    String GISAID_API_ENDPOINT
-    String GISAID_USERNAME_AND_PASSWORD
-    String AWS_DEFAULT_REGION
-    String AWS_ACCESS_KEY_ID
-    String AWS_SECRET_ACCESS_KEY
+    String GISAID_API_ENDPOINT=""
+    String GISAID_USERNAME_AND_PASSWORD=""
+    String AWS_DEFAULT_REGION=""
+    String AWS_ACCESS_KEY_ID=""
+    String AWS_SECRET_ACCESS_KEY=""
     String? SLACK_TOKEN
     String? SLACK_CHANNEL
 
     String giturl = "https://github.com/nextstrain/ncov-ingest/archive/refs/heads/master.zip"
 
-    String? docker_img = "nextstrain/ncov-ingest:latest"
+    String docker_img = "nextstrain/ncov-ingest:latest"
     Int cpu = 16
     Int disk_size = 48  # In GiB
     Float memory = 3.5
@@ -36,45 +36,56 @@ task ncov_ingest {
     NCOV_INGEST_DIR=`unzip -Z1 master.zip | head -n1 | sed 's:/::g'`
     unzip master.zip
 
-    PROC=`nproc` # Max out processors, although not sure if it matters here
+    # List available scripts
+    echo $NCOV_INGEST_DIR
+    ls $NCOV_INGEST_DIR/bin/*
 
-    # Navigate to ncov-ingest directory, and call snakemake
-    cd ${NCOV_INGEST_DIR}
+    touch ncov_ingest.zip
 
-    # Still required for the --config flag later?
-    declare -a config
-    config+=(
-      fetch_from_database=True
-      trigger_rebuild=True
-    )
-
-    # Native run of snakemake?
-    nextstrain build \
-      --native \
-      --no-download \
-      --cpus ~{PROC} \
-      --memory ~{memory}GiB \
-      --exec env \
-      . \
-        snakemake \
-          --configfile config/gisaid.yaml \
-          --config "${config[@]}" \
-          --cores ${PROC} \
-          --resources mem_mb=47000 \
-          --printshellcmds
-
-    # Or maybe simplier? https://github.com/nextstrain/ncov-ingest/blob/master/.github/workflows/rebuild-open.yml#L26
-    #./bin/rebuild open       # Make sure these aren't calling aws before using them
-    #./bin/rebuild gisaid
-
-    # === prepare output
-    cd ..
-    zip -r ncov_ingest.zip ${NCOV_INGEST_DIR}
+#    PROC=`nproc` # Max out processors, although not sure if it matters here
+#
+#    # Navigate to ncov-ingest directory, and call snakemake
+#    cd ${NCOV_INGEST_DIR}
+#
+#    # Still required for the --config flag later?
+#    declare -a config
+#    config+=(
+#      fetch_from_database=True
+#      trigger_rebuild=False
+#      keep_all_files=True
+#      s3_src="s3://nextstrain-ncov-private"
+#      s3_dst="s3://nextstrain-ncov-private/trial"
+#    )
+#
+#    # Native run of snakemake?
+#    nextstrain build \
+#      --native \
+#      --cpus $PROC \
+#      --memory ~{memory}GiB \
+#      --exec env \
+#      . \
+#        snakemake \
+#          --configfile config/gisaid.yaml \
+#          --config "${config[@]}" \
+#          --cores ${PROC} \
+#          --resources mem_mb=47000 \
+#          --printshellcmds
+#
+#    # Or maybe simplier? https://github.com/nextstrain/ncov-ingest/blob/master/.github/workflows/rebuild-open.yml#L26
+#    #./bin/rebuild open       # Make sure these aren't calling aws before using them
+#    #./bin/rebuild gisaid
+#
+#    # === prepare output
+#    cd ..
+#    zip -r ncov_ingest.zip ${NCOV_INGEST_DIR}
   >>>
 
   output {
     File ncov_ingest_zip = "ncov_ingest.zip"
-    # Separate this out into sequences, metadata files for both open and closed
+    # Separate out into sequence and metadata data output channels
+    # File sequences_fasta = "ncov-ingest-master/data/gisaid/sequences.fasta"
+    # File metadata_tsv = "ncov-ingest-master/data/gisaid/metadata.tsv"
+    # File aligned_fasta = "ncov-ingest-master/data/gisaid/aligned.fasta"
   }
   
   runtime {
