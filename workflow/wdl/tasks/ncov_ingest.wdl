@@ -17,8 +17,8 @@ task ncov_ingest {
 
     String docker_img = "nextstrain/ncov-ingest:latest"
     Int cpu = 16
-    Int disk_size = 48  # In GiB
-    Float memory = 3.5
+    Int disk_size = 1500  # In GiB
+    Float memory = 50
   }
 
   command <<<
@@ -74,14 +74,19 @@ task ncov_ingest {
 
     # === prepare output
     cd ..
-    zip -r ncov_ingest.zip ${NCOV_INGEST_DIR}
+    #zip -r ncov_ingest.zip ${NCOV_INGEST_DIR}
+    mv ${NCOV_INGEST_DIR}/data/gisaid/sequences.fasta .
+    mv ${NCOV_INGEST_DIR}/data/gisaid/metadata.tsv .
+    mv ${NCOV_INGEST_DIR}/data/gisaid/metadata_transformed.tsv .
+    mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv .
   >>>
 
   output {
-    File ncov_ingest_zip = "ncov_ingest.zip"
+    #File ncov_ingest_zip = "ncov_ingest.zip"
     # Separate out into sequence and metadata data output channels
-    # File sequences_fasta = "ncov-ingest-master/data/gisaid/sequences.fasta"
-    # File metadata_tsv = "ncov-ingest-master/data/gisaid/metadata.tsv"
+    File sequences_fasta = "sequences.fasta"
+    File metadata_tsv = "metadata.tsv"
+    File nextclade_old = "nextclade_old.tsv"
     # File aligned_fasta = "ncov-ingest-master/data/gisaid/aligned.fasta"
   }
   

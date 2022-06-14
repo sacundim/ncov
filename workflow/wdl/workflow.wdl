@@ -76,7 +76,10 @@ workflow Nextstrain_WRKFLW {
 
   output {
     # ncov-ingest output
-    File ncov_ingest_zip = ncov_ingest.ncov_ingest_zip
+    # File ncov_ingest_zip = ncov_ingest.ncov_ingest_zip
+    File sequences_fasta = ncov_ingest.sequences_fasta
+    File metadata_tsv = ncov_ingest.metadata_tsv
+    File nextclade_old = ncov_ingest.nextclade_old
 
     # build output
     # #Array[File] json_files = build.json_files
