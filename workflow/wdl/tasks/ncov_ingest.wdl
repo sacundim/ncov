@@ -10,10 +10,15 @@ task ncov_ingest {
     String AWS_DEFAULT_REGION=""
     String AWS_ACCESS_KEY_ID=""
     String AWS_SECRET_ACCESS_KEY=""
-    String? SLACK_TOKEN
-    String? SLACK_CHANNEL
+    #String? SLACK_TOKEN
+    #String? SLACK_CHANNEL
 
-    String giturl = "https://github.com/nextstrain/ncov-ingest/archive/refs/heads/master.zip"
+    # Optional cached files
+    File? cache_nextclade_old
+    File? cache_aligned_old
+
+    String giturl = "https://github.com/nextstrain/ncov-ingest/archive/refs/heads/modularize_upload.zip"
+    #https://github.com/nextstrain/ncov-ingest/archive/refs/heads/master.zip"
 
     String docker_img = "nextstrain/ncov-ingest:latest"
     Int cpu = 16
@@ -29,8 +34,6 @@ task ncov_ingest {
     export AWS_ACCESS_KEY_ID=~{AWS_ACCESS_KEY_ID}
     export AWS_SECRET_ACCESS_KEY=~{AWS_SECRET_ACCESS_KEY}
 
-    # ditto for slack tokens but add a optional wrapper
-
     # Pull ncov-ingest repo
     wget -O master.zip ~{giturl}
     NCOV_INGEST_DIR=`unzip -Z1 master.zip | head -n1 | sed 's:/::g'`
@@ -42,52 +45,72 @@ task ncov_ingest {
 #
 #    touch ncov_ingest.zip
 
-   PROC=`nproc` # Max out processors, although not sure if it matters here
-   # Navigate to ncov-ingest directory, and call snakemake
-   cd ${NCOV_INGEST_DIR}
-   # Still required for the --config flag later?
-   declare -a config
-   config+=(
-     fetch_from_database=True
-     trigger_rebuild=False
-     keep_all_files=True
-     s3_src="s3://nextstrain-ncov-private"
-     s3_dst="s3://nextstrain-ncov-private/trial"
-     upload_to_s3=False
-   )
-   # Native run of snakemake?
-   nextstrain build \
-     --native \
-     --cpus $PROC \
-     --memory ~{memory}GiB \
-     --exec env \
-     . \
-       snakemake \
-         --configfile config/gisaid.yaml \
-         --config "${config[@]}" \
-         --cores ${PROC} \
-         --resources mem_mb=47000 \
-         --printshellcmds
-   # Or maybe simplier? https://github.com/nextstrain/ncov-ingest/blob/master/.github/workflows/rebuild-open.yml#L26
+    # Link cache files, instead of pulling from s3
+    if [ -n "~{cache_nextclade_old}" ]
+    then
+      mv ~{cache_nextclade_old} ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv
+    fi
+    if [ -n "~{cache_aligned_old}" ]
+    then
+      mv ~{cache_aligned_old} ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta
+    fi
+
+    PROC=`nproc` # Max out processors, although not sure if it matters here
+    # Navigate to ncov-ingest directory, and call snakemake
+    cd ${NCOV_INGEST_DIR}
+    # Still required for the --config flag later?
+    declare -a config
+    config+=(
+      fetch_from_database=True
+      trigger_rebuild=False
+      keep_all_files=True
+      s3_src="s3://nextstrain-ncov-private"
+      s3_dst="s3://nextstrain-ncov-private/trial"
+      upload_to_s3=False
+    )
+    # Native run of snakemake?
+    nextstrain build \
+      --native \
+      --cpus $PROC \
+      --memory ~{memory}GiB \
+      --exec env \
+      . \
+        snakemake \
+          --configfile config/gisaid.yaml \
+          --config "${config[@]}" \
+          --cores ${PROC} \
+          --resources mem_mb=47000 \
+          --printshellcmds
+    # Or maybe simplier? https://github.com/nextstrain/ncov-ingest/blob/master/.github/workflows/rebuild-open.yml#L26
 #    #./bin/rebuild open       # Make sure these aren't calling aws before using them
 #    #./bin/rebuild gisaid
 
     # === prepare output
     cd ..
-    #zip -r ncov_ingest.zip ${NCOV_INGEST_DIR}
     mv ${NCOV_INGEST_DIR}/data/gisaid/sequences.fasta .
     mv ${NCOV_INGEST_DIR}/data/gisaid/metadata.tsv .
-    mv ${NCOV_INGEST_DIR}/data/gisaid/metadata_transformed.tsv .
-    mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv .
+
+    # prepare output caches
+    mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv nextclade.tsv
+    if [ -f "${NCOV_INGEST_DIR}/data/gisaid/nextclade.tsv" ]
+    then
+      mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.tsv .
+    fi
+    mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta aligned.fasta
+    if [ -f "${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta" ]
+    then
+      mv ${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta .
+    fi
   >>>
 
   output {
-    #File ncov_ingest_zip = "ncov_ingest.zip"
-    # Separate out into sequence and metadata data output channels
+    # Ingested gisaid sequence and metadata files
     File sequences_fasta = "sequences.fasta"
     File metadata_tsv = "metadata.tsv"
-    File nextclade_old = "nextclade_old.tsv"
-    # File aligned_fasta = "ncov-ingest-master/data/gisaid/aligned.fasta"
+
+    # cache for next run
+    File nextclade_cache = "nextclade.tsv" 
+    File aligned_cache = "aligned.fasta"
   }
   
   runtime {
@@ -96,5 +119,4 @@ task ncov_ingest {
     memory: memory + " GiB"
     disks: "local-disk " + disk_size + " HDD"
   }
-
 }
