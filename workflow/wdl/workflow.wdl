@@ -11,7 +11,7 @@ workflow Nextstrain_WRKFLW {
     String AWS_DEFAULT_REGION
 
     File? cache_nextclade_old
-    File? cache_aligned_old
+    #File? cache_aligned_old
 
 #     # Option 1: Pass in a sequence and metadata files, create a configfile_yaml
 #     File? sequence_fasta
@@ -50,7 +50,6 @@ workflow Nextstrain_WRKFLW {
 
       # caches
       cache_nextclade_old = cache_nextclade_old,
-      cache_aligned_old = cache_aligned_old,
 
       cpu = cpu,
       memory = memory,
@@ -88,7 +87,7 @@ workflow Nextstrain_WRKFLW {
     File metadata_tsv = ingest.metadata_tsv
 
     File nextclade_tsv = ingest.nextclade_cache
-    File aligned_fasta = ingest.aligned_cache
+    #File aligned_fasta = ingest.aligned_cache
 
     # build output
     # #Array[File] json_files = build.json_files

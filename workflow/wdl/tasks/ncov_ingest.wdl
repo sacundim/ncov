@@ -15,7 +15,6 @@ task ncov_ingest {
 
     # Optional cached files
     File? cache_nextclade_old
-    File? cache_aligned_old
 
     String giturl = "https://github.com/nextstrain/ncov-ingest/archive/refs/heads/modularize_upload.zip"
     #https://github.com/nextstrain/ncov-ingest/archive/refs/heads/master.zip"
@@ -50,10 +49,6 @@ task ncov_ingest {
     then
       mv ~{cache_nextclade_old} ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv
     fi
-    if [ -n "~{cache_aligned_old}" ]
-    then
-      mv ~{cache_aligned_old} ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta
-    fi
 
     PROC=`nproc` # Max out processors, although not sure if it matters here
     # Navigate to ncov-ingest directory, and call snakemake
@@ -87,6 +82,7 @@ task ncov_ingest {
 
     # === prepare output
     cd ..
+    ls -l ${NCOV_INGEST_DIR}/data/*
     mv ${NCOV_INGEST_DIR}/data/gisaid/sequences.fasta .
     mv ${NCOV_INGEST_DIR}/data/gisaid/metadata.tsv .
 
@@ -96,11 +92,12 @@ task ncov_ingest {
     then
       mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.tsv .
     fi
-    mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta aligned.fasta
-    if [ -f "${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta" ]
-    then
-      mv ${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta .
-    fi
+    # nextclade.aligned.old.fasta is a temp file
+    # mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta aligned.fasta
+    # if [ -f "${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta" ]
+    # then
+    #   mv ${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta .
+    # fi
   >>>
 
   output {
@@ -110,7 +107,7 @@ task ncov_ingest {
 
     # cache for next run
     File nextclade_cache = "nextclade.tsv" 
-    File aligned_cache = "aligned.fasta"
+    #File aligned_cache = "aligned.fasta"
   }
   
   runtime {
