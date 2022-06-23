@@ -53,16 +53,7 @@ task ncov_ingest {
     PROC=`nproc` # Max out processors, although not sure if it matters here
     # Navigate to ncov-ingest directory, and call snakemake
     cd ${NCOV_INGEST_DIR}
-    # Still required for the --config flag later?
-    declare -a config
-    config+=(
-      fetch_from_database=True
-      trigger_rebuild=False
-      keep_all_files=True
-      s3_src=""
-      s3_dst=""
-      upload_to_s3=False
-    )
+
     # Native run of snakemake?
     nextstrain build \
       --native \
@@ -71,20 +62,20 @@ task ncov_ingest {
       --exec env \
       . \
         snakemake \
-          --configfile config/gisaid.yaml \
-          --config "${config[@]}" \
+          --configfile config/local_gisaid.yaml \
           --cores ${PROC} \
           --resources mem_mb=47000 \
           --printshellcmds
-    # Or maybe simplier? https://github.com/nextstrain/ncov-ingest/blob/master/.github/workflows/rebuild-open.yml#L26
-#    #./bin/rebuild open       # Make sure these aren't calling aws before using them
-#    #./bin/rebuild gisaid
 
     # === prepare output
     cd ..
+    # mv ${NCOV_INGEST_DIR}/log .
+    # zip log
     ls -l ${NCOV_INGEST_DIR}/data/*
     mv ${NCOV_INGEST_DIR}/data/gisaid/sequences.fasta .
     mv ${NCOV_INGEST_DIR}/data/gisaid/metadata.tsv .
+    xz --compress sequences.fasta
+    xz --compress metadata.tsv
 
     # prepare output caches
     mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade_old.tsv nextclade.tsv
@@ -92,21 +83,16 @@ task ncov_ingest {
     then
       mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.tsv .
     fi
-    # nextclade.aligned.old.fasta is a temp file
-    # mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.aligned.old.fasta aligned.fasta
-    # if [ -f "${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta" ]
-    # then
-    #   mv ${NCOV_INGEST_DIR}/data/gisaid/aligned.fasta .
-    # fi
+    xz --compress nextclade.tsv
   >>>
 
   output {
     # Ingested gisaid sequence and metadata files
-    File sequences_fasta = "sequences.fasta"
-    File metadata_tsv = "metadata.tsv"
+    File sequences_fasta = "sequences.fasta.xz"
+    File metadata_tsv = "metadata.tsv.xz"
 
     # cache for next run
-    File nextclade_cache = "nextclade.tsv" 
+    File nextclade_cache = "nextclade.tsv.xz" 
     #File aligned_cache = "aligned.fasta"
   }
   
