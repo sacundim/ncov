@@ -59,8 +59,8 @@ task ncov_ingest {
       fetch_from_database=True
       trigger_rebuild=False
       keep_all_files=True
-      s3_src="s3://nextstrain-ncov-private"
-      s3_dst="s3://nextstrain-ncov-private/trial"
+      s3_src=""
+      s3_dst=""
       upload_to_s3=False
     )
     # Native run of snakemake?
