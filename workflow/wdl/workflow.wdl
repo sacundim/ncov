@@ -8,7 +8,7 @@ workflow Nextstrain_WRKFLW {
     # ncov ingest
     String GISAID_API_ENDPOINT
     String GISAID_USERNAME_AND_PASSWORD
-    String AWS_DEFAULT_REGION
+    String? AWS_DEFAULT_REGION
 
     File? cache_nextclade_old
     #File? cache_aligned_old
@@ -34,19 +34,19 @@ workflow Nextstrain_WRKFLW {
     
     # By default, run the ncov workflow (can swap it for zika or something else)
 #    String pathogen_giturl = "https://github.com/nextstrain/ncov/archive/refs/heads/master.zip"
-    String docker_path = "nextstrain/base:latest"
+#    String docker_path = "nextstrain/base:latest"
     Int? cpu
     Int? memory       # in GiB
     Int? disk_size
   }
 
-  call ncov_ingest.ncov_ingest as ingest {
+  call ncov_ingest.gisaid_ingest as ingest {
     input:
       GISAID_API_ENDPOINT = GISAID_API_ENDPOINT,
       GISAID_USERNAME_AND_PASSWORD = GISAID_USERNAME_AND_PASSWORD,
       AWS_DEFAULT_REGION = AWS_DEFAULT_REGION,
-      AWS_ACCESS_KEY_ID = select_first([AWS_ACCESS_KEY_ID,""]),
-      AWS_SECRET_ACCESS_KEY = select_first([AWS_SECRET_ACCESS_KEY,""]),
+      AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID,
+      AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY,
 
       # caches
       cache_nextclade_old = cache_nextclade_old,
@@ -55,6 +55,16 @@ workflow Nextstrain_WRKFLW {
       memory = memory,
       disk_size = disk_size
   }
+
+#  call ncov_ingest.genbank_ingest as ingest {
+#    input:
+#      # caches
+#      cache_nextclade_old = cache_nextclade_old,
+#
+#      cpu = cpu,
+#      memory = memory,
+#      disk_size = disk_size
+#  }
 
 #  call nextstrain.nextstrain_build as build {
 #    input:
