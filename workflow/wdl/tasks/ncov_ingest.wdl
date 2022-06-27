@@ -5,9 +5,9 @@ task gisaid_ingest {
     # based off of https://github.com/nextstrain/ncov-ingest#required-environment-variables
     String GISAID_API_ENDPOINT=""
     String GISAID_USERNAME_AND_PASSWORD=""
-    #String? AWS_DEFAULT_REGION
-    #String? AWS_ACCESS_KEY_ID
-    #String? AWS_SECRET_ACCESS_KEY
+    String? AWS_DEFAULT_REGION
+    String? AWS_ACCESS_KEY_ID
+    String? AWS_SECRET_ACCESS_KEY
     #String? SLACK_TOKEN
     #String? SLACK_CHANNEL
 
@@ -28,9 +28,9 @@ task gisaid_ingest {
     export GISAID_API_ENDPOINT=~{GISAID_API_ENDPOINT}
     export GISAID_USERNAME_AND_PASSWORD=~{GISAID_USERNAME_AND_PASSWORD}
 
-    #export AWS_DEFAULT_REGION=AWS_DEFAULT_REGION
-    #export AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID
-    #export AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY
+    export AWS_DEFAULT_REGION="~{AWS_DEFAULT_REGION}"
+    export AWS_ACCESS_KEY_ID="~{AWS_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="~{AWS_SECRET_ACCESS_KEY}"
 
     PROC=`nproc`
     MEM=`echo $((("~{memory}"-3)*1000)) | sed 's/\.*//g'`
