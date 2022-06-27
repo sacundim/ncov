@@ -64,8 +64,36 @@ Connect your data files to the WDL workflow
   |Nextstrain_WRKFLW|  sequence_fasta  | File  | this.sequences       |
   +-----------------+------------------+-------+----------------------+
 
-10. Click on the **OUTPUTS** tab
-11. Connect your generated output back to the data table, but filling in values:
+10. If creating a build with multiple sequence and metadata files, can upload a targz folder containing the files. Otherwise skip
+
+  +-----------------+-----------------+-------+----------------------+
+  |Task name        | Variable        | Type  |   Attribute          |
+  +=================+=================+=======+======================+
+  |Nextstrain_WRKFLW|  context_targz  | File  | this.context_targz   |
+  +-----------------+-----------------+-------+----------------------+
+
+11. OPTIONAL CHANGE: If you are uploading gisaid/genbank, or very large sequence files, it is highly recommended to increase disk size.
+
+  +-----------------+-------------------+-------+---------------------------------------------+
+  |Task name        | Variable          | Type  |  Description                                |
+  +=================+===================+=======+=============================================+
+  |Nextstrain_WRKFLW|  disk_size        | Int   | 30 gb by default, may need to expand to 500 |
+  +-----------------+-------------------+-------+---------------------------------------------+
+
+12. OPTIONAL CHANGE: If you have a private/public nextstrain group, specify the following variables to push to an s3 site. Otherwise this step can be skipped.
+
+  +-----------------+-----------------------+--------+--------------------------------+
+  |Task name        | Variable              | Type   |  Description                   |
+  +=================+=======================+========+================================+
+  |Nextstrain_WRKFLW| s3deply               | String | nextstrain provided url string |
+  +-----------------+-----------------------+--------+--------------------------------+
+  |Nextstrain_WRKFLW| AWS_ACCESS_KEY_ID     | String | your group access key id       |
+  +-----------------+-----------------------+--------+--------------------------------+
+  |Nextstrain_WRKFLW| AWS_SECRET_ACCESS_KEY | String | your group secret access key   |
+  +-----------------+-----------------------+--------+--------------------------------+
+
+13. Click on the **OUTPUTS** tab
+14. Connect your generated output back to the data table, but filling in values:
 
   +-----------------+-----------------+-------+----------------------+
   |Task name        | Variable	      | Type  |   Attribute          |
@@ -75,6 +103,6 @@ Connect your data files to the WDL workflow
   |Nextstrain_WRKFLW|  results_zip    | File  | this.results_zip     |
   +-----------------+-----------------+-------+----------------------+
 
-12. Click on **Save** then click on **Run Analysis**
+15. Click on **Save** then click on **Run Analysis**
 #. Under the tab **JOB HISTORY**, verify that your job is running.
 #. When run is complete, check the **DATA** / **TABLES** / **ncov_examples** tab and download "auspice.zip" file
