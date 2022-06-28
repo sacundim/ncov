@@ -20,7 +20,7 @@ task gisaid_ingest {
     String docker_img = "nextstrain/ncov-ingest:latest"
     Int cpu = 16
     Int disk_size = 1500  # In GiB
-    Float memory = 50
+    Float memory = 50     # In GiB
   }
 
   command <<<
@@ -33,7 +33,8 @@ task gisaid_ingest {
     export AWS_SECRET_ACCESS_KEY="~{AWS_SECRET_ACCESS_KEY}"
 
     PROC=`nproc`
-    MEM=`echo $((("~{memory}"-3)*1000)) | sed 's/\.*//g'`
+    temp_mem="~{memory}"
+    MEM=${temp_mem%.*}000
 
     # Pull ncov-ingest repo
     wget -O master.zip ~{giturl}
@@ -69,7 +70,7 @@ task gisaid_ingest {
         snakemake \
           --configfile config/local_gisaid.yaml \
           --cores ${PROC} \
-          --resources mem_mb=$MEM \
+          --resources mem_mb=${MEM} \
           --printshellcmds
 
     # === prepare output
