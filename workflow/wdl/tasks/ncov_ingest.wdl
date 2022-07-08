@@ -93,6 +93,8 @@ task gisaid_ingest {
       mv ${NCOV_INGEST_DIR}/data/gisaid/nextclade.tsv ${PREFIX}_gisaid_nextclade.tsv
     fi
     xz --compress ${PREFIX}_gisaid_nextclade.tsv
+
+    mv ${NCOV_INGEST_DIR}/logs .
   >>>
 
   output {
@@ -101,7 +103,8 @@ task gisaid_ingest {
     File metadata_tsv = "gisaid_metadata.tsv.xz"
 
     # cache for next run
-    File nextclade_cache = "*_gisaid_nextclade.tsv.xz"
+    File nextclade_cache = glob("*_gisaid_nextclade.tsv.xz")
+    Array[File] logs = glob("logs/*")
   }
   
   runtime {

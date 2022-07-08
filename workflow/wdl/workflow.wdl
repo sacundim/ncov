@@ -99,6 +99,7 @@ workflow Nextstrain_WRKFLW {
     File metadata_tsv = ingest.metadata_tsv
 
     File nextclade_tsv = ingest.nextclade_cache
+    Array[File] logs = ingest.logs
     #File aligned_fasta = ingest.aligned_cache
 
     # build output
