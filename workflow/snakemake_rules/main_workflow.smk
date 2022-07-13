@@ -1131,7 +1131,7 @@ rule colors:
         """
 
 rule recency:
-    message: "Use metadata on submission date to construct submission recency field"
+    message: "Use metadata on submission date to construct submission recency and lag fields"
     input:
         metadata="results/{build_name}/metadata_adjusted.tsv.xz",
     output:

@@ -254,6 +254,11 @@ rule auspice_config:
                     "type": "categorical"
                 },
                 {
+                    "key": "submission_lag",
+                    "title": "Submission Lag (days)",
+                    "type": "continuous"
+                },
+                {
                     "key": "epiweek",
                     "title": "Epiweek (CDC)",
                     "type": "categorical"
@@ -289,7 +294,8 @@ rule auspice_config:
                 "author",
                 originating_lab_filter,
                 submitting_lab_filter,
-                "recency"
+                "recency",
+                "submission_lag"
             ],
             "panels": [
                 "tree",
